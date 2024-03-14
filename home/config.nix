@@ -1,17 +1,19 @@
-{ config, pkgs, ... }:
+{ config, pkgs, ... }: {
+  imports = [
+    ./vendor/hyprland.nix
+  ];
 
-{
-    home.username = "onekki";
-    home.homeDirectory = "/home/onekki";
+  home.username = "onekki";
+  home.homeDirectory = "/home/onekki";
 
-    home.packages = with pkgs;[
-      neofetch
+  home.packages = with pkgs;[
+    neofetch
+    which
 
-      which
-      tree
-    ];
+    kitty
+  ];
 
-    programs.home-manager.enable = true;
+  programs.home-manager.enable = true;
 
-    home.stateVersion = "23.11";
+  home.stateVersion = "23.11";
 }

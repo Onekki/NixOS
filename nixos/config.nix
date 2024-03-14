@@ -5,6 +5,8 @@
     ./i18n.nix
     ./myvars.nix
     ./networking.nix
+
+    ./vendor/hyprland.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
