@@ -1,17 +1,10 @@
 { config, pkgs, ... }: {
   imports = [
-    ./vendor/hyprland.nix
+    ./vendor/hyprland
   ];
 
   home.username = "onekki";
   home.homeDirectory = "/home/onekki";
-
-  home.packages = with pkgs;[
-    neofetch
-    which
-
-    kitty
-  ];
 
   programs.home-manager.enable = true;
 

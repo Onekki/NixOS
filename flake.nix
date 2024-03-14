@@ -19,12 +19,12 @@
         system = "x86_64-linux";
         specialArgs = { inherit inputs; };
         modules = [
-          ./nixos/config.nix
+          ./nixos/default.nix
           home-manager.nixosModules.home-manager {
             home-manager = {
               extraSpecialArgs = { inherit inputs; };
               users = {
-                onekki = import ./home/config.nix;
+                onekki = import ./home/default.nix;
               };
             };
           }
