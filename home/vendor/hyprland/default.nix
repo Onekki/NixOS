@@ -1,6 +1,5 @@
 { pkgs, ...}: {
   home.packages = with pkgs; [
-    kitty
     dolphin
     wofi
   ];
