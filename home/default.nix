@@ -1,5 +1,6 @@
 { config, pkgs, ... }: {
   imports = [
+    ./vendor/waybar
     ./vendor/hyprland
   ];
 

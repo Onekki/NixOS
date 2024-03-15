@@ -1,0 +1,80 @@
+* {
+  font-size: 16px;
+}
+
+#waybar {
+  color: #ffffff;
+  background: transparent;
+  margin: 16px;
+}
+
+#custom-launcher,
+#network,
+#pluseaudio,
+#battery,
+#backlight,
+#clock,
+#memory,
+#temperature,
+#cpu,
+#custom-power {
+  background: #1e2021;
+  border-radius: 4px;
+  margin: 8px;
+  padding: 8px;
+  transition: none;
+}
+
+#custom-launcher {
+  color: #337ab7;
+}
+
+#cpu {
+  color: #b4befe;
+}
+
+#temperature {
+  color: #f8bd96;
+}
+
+
+#memory {
+  color: #74c7ec;
+}
+
+#backlight {
+  color: #94e2d5;
+}
+
+#battery {
+  color: #b5e8e0;
+}
+
+#battery.charging,
+#battery.plugged {
+  color: #a6e3a1;
+}
+
+#battery.critical:not(.charging) {
+  color: #b5e8e0;
+}
+
+#bluetoolth {
+  color: #89dceb;
+}
+
+#clock {
+  color: #cba6f7;
+}
+
+#network {
+  color: #f5c2e7;
+}
+
+#pulseaudio {
+  color: #eba0ac;
+}
+
+#custom-power {
+  color: #f38ba8;
+}
