@@ -1,5 +1,6 @@
 { config, pkgs, ... }: {
   imports = [
+    ./vendor/ags
     ./vendor/starship
     ./vendor/kitty
     ./vendor/waybar

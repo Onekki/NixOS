@@ -2,7 +2,6 @@
   description = "A very basic flake";
 
   inputs = {
-
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
 
     home-manager = {
@@ -10,6 +9,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    ags.url = "github:Aylur/ags";
   };
 
   outputs = inputs@{ self, nixpkgs, home-manager, ... }: {
