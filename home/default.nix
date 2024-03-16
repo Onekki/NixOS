@@ -1,6 +1,5 @@
 { config, pkgs, ... }: {
   imports = [
-    ./vendor/zsh
     ./vendor/starship
     ./vendor/kitty
     ./vendor/waybar
