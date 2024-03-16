@@ -5,10 +5,13 @@
     ./vendor/kitty
     ./vendor/waybar
     ./vendor/hyprland
+    ./vendor/vscode
   ];
 
   home.username = "onekki";
   home.homeDirectory = "/home/onekki";
+
+  nixpkgs.config.allowUnfree = true;
 
   programs.home-manager.enable = true;
 
