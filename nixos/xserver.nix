@@ -1,24 +1,31 @@
 { pkgs, ... }: {
-  environment.systemPackages = with pkgs; [
-    gnome.gnome-terminal
-    gnome.nautilus
-  ];
-  environment.variables = {
-    GDK_SCALE = "2";
-    GDK_DPI_SCALE = "2";
-    _JAVA_OPTIONS = "-Dsun.java2d.uiScale=2";
-  };
   services.xserver = {
     enable = true;
-    displayManager = {
-      gdm.enable = true;
-      sessionPackages = [
-        pkgs.gnome.gnome-session.sessions
-      ];
-    };
-    dpi = 180;
+    displayManager.gdm.enable = true;
+    desktopManager.gnome.enable = true;
     excludePackages = with pkgs; [
       xterm
     ];
   };
+
+  environment.gnome.excludePackages = (with pkgs; [
+    gedit
+    gnome-tour
+    gnome-photos
+  ]) ++ (with pkgs.gnome; [
+    tali
+    geary
+    totem
+    iagno
+    hitori
+    evince
+    cheese
+    atomix
+    epiphany
+    gnome-maps
+    gnome-music
+    gnome-contacts
+    gnome-terminal
+    gnome-characters
+  ]);
 }
