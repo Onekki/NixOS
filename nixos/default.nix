@@ -5,6 +5,7 @@
     ./i18n.nix
     ./myvars.nix
     ./networking.nix
+    ./xserver.nix
 
     ./vendor/hyprland.nix
   ];
