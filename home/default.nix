@@ -9,11 +9,6 @@
     ./vendor/msedge
   ];
 
-  xresources.properties = {
-    "Xcursor.size" = 16;
-    "Xft.dpi" = 172;
-  };
-
   home.username = "onekki";
   home.homeDirectory = "/home/onekki";
 
