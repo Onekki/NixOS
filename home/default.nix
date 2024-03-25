@@ -7,6 +7,7 @@
     ./vendor/hyprland
     ./vendor/vscode
     ./vendor/msedge
+    ./vendor/theme
   ];
 
   home.username = "onekki";
