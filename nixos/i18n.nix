@@ -1,4 +1,4 @@
-_: {
+{ pkgs, ... }: {
   i18n.defaultLocale = "en_US.UTF-8";
 
   i18n.extraLocaleSettings = {
@@ -11,5 +11,20 @@ _: {
     LC_PAPER = "zh_CN.UTF-8";
     LC_TELEPHONE = "zh_CN.UTF-8";
     LC_TIME = "zh_CN.UTF-8";
+  };
+
+  fonts = {
+    enableDefaultPackages = true;
+    packages = with pkgs; [
+      sarasa-gothic
+    ];
+
+    fontconfig = {
+      defaultFonts = {
+        serif = [ "Sarasa Fixed Slab SC" ];
+        sansSerif = [ "Sarasa Fixed SC" ];
+        monospace = [ "Sarasa Mono SC" ];
+      };
+    };
   };
 }
