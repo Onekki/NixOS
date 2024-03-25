@@ -3,6 +3,7 @@
     ./bootloader.nix
     ./hardware.nix
     ./i18n.nix
+    ./fonts.nix
     ./myvars.nix
     ./networking.nix
 
