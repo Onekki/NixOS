@@ -2,18 +2,15 @@
   fonts = {
     enableDefaultPackages = true;
     packages = with pkgs; [
-      source-han-mono
-      source-han-sans
-      source-han-serif
-      noto-fonts-color-emoji
+      sarasa-gothic
     ];
 
     fontconfig = {
+      enable = true;
       defaultFonts = {
-        emoji = [ "Noto Color Emoji" ];
-        serif = [ "Source Han Serif SC" ];
-        sansSerif = [ "Source Han Sans SC" ];
-        monospace = [ "Source Han Mono SC" ];
+        serif = [ "Sarasa Fixed Slab SC" ];
+        sansSerif = [ "Sarasa Fixed SC" ];
+        monospace = [ "Sarasa Mono SC" ];
       };
     };
   };
