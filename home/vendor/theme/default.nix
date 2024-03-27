@@ -1,31 +1,23 @@
 { pkgs, ... }: {
-  fonts.fontconfig.enable = true;
-
   home.packages = with pkgs; [
-    (nerdfonts.override {
-      fonts = [ "NerdFontsSymbolsOnly" ];
-    })
-    dconf
-    gtk-engine-murrine
     gnome.gnome-themes-extra
   ];
 
-  home.sessionVariables.GTK_THEME = "Catppuccin-Macchiato-Compact-Mauve-Dark";
+  home.sessionVariables.GTK_THEME = "Catppuccin-Macchiato-Compact-Pink-Dark";
 
   gtk = {
     enable = true;
     theme = {
-      name = "Catppuccin-Macchiato-Compact-Mauve-Dark";
+      name = "Catppuccin-Macchiato-Compact-Pink-Dark";
       package = pkgs.catppuccin-gtk.override {
-        accents = ["mauve"];
+        accents = ["pink"];
         size = "compact";
-        tweaks = [];
         variant = "macchiato";
       };
     };
     cursorTheme = {
-      name = "Catppuccin-Macchiato-Mauve-Cursors";
-      package = pkgs.catppuccin-cursors.macchiatoMauve;
+      name = "macOS-BigSur";
+      package = pkgs.apple-cursor;
     };
     iconTheme = {
       name = "Papirus-Dark";
@@ -35,7 +27,7 @@
 
   home.pointerCursor = {
     gtk.enable = true;
-    package = pkgs.catppuccin-cursors.macchiatoMauve;
-    name = "Catppuccin-Macchiato-Mauve-Cursors";
+    name = "macOS-BigSur";
+    package = pkgs.apple-cursor;
   };
 }
