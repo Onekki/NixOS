@@ -6,6 +6,7 @@
     ./fonts.nix
     ./myvars.nix
     ./networking.nix
+    ./bluetooth.nix
 
     ./vendor/hyprland.nix
   ];
