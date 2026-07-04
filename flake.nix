@@ -45,6 +45,8 @@
       identity = rec {
         username = "nixos";
         homeDirectory = "/home/${username}";
+        gitName = "Onekki";
+        gitEmail = "izhuwq@gmail.com";
       };
     in
     {

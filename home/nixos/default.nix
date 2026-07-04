@@ -5,6 +5,7 @@
     ./cc-switch.nix
     ./dms.nix
     ./fcitx5.nix
+    ./git.nix
   ];
 
   home.username = identity.username;
