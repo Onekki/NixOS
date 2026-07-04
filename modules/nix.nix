@@ -1,4 +1,11 @@
+{ lib, ... }:
+
 {
+  nixpkgs.config.allowUnfreePredicate = pkg:
+    builtins.elem (lib.getName pkg) [
+      "google-chrome"
+    ];
+
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"

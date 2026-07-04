@@ -1,9 +1,9 @@
-{ pkgs, ... }:
+{ identity, pkgs, ... }:
 
 {
   time.timeZone = "Asia/Shanghai";
 
-  users.users.nixos = {
+  users.users.${identity.username} = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
     shell = pkgs.bashInteractive;

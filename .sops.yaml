@@ -1,0 +1,8 @@
+keys:
+  - &onekki age1hjaxt4dfgr6y55vn440msxfca2s44ry5z3upydlwfzq3l5ls4fgszemm40
+
+creation_rules:
+  - path_regex: secrets/.*\.ya?ml$
+    key_groups:
+      - age:
+          - *onekki

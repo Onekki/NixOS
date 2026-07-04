@@ -1,0 +1,14 @@
+# Nix build outputs
+result
+result-*
+
+# Local environment and secrets
+.env
+.env.*
+*.env
+keys.txt
+extra-files/
+
+# CC-Switch runtime state
+cc-switch.db
+*.db

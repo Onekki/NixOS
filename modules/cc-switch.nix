@@ -2,7 +2,7 @@
 
 {
   environment.systemPackages = [
-    cc-switch-cli.packages.${pkgs.system}.cc-switch
+    cc-switch-cli.packages.${pkgs.stdenv.hostPlatform.system}.cc-switch
   ];
 
   environment.shellInit = ''

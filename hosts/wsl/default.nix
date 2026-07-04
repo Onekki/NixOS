@@ -1,4 +1,4 @@
-{ nixos-wsl, ... }:
+{ identity, nixos-wsl, ... }:
 
 {
   imports = [
@@ -7,7 +7,7 @@
   ];
 
   wsl.enable = true;
-  wsl.defaultUser = "nixos";
+  wsl.defaultUser = identity.username;
 
-  system.stateVersion = "25.11";
+  system.stateVersion = "26.11";
 }

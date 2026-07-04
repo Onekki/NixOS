@@ -2,7 +2,7 @@
 
 {
   environment.systemPackages = with pkgs; [
-    codex
-    cacert
+    google-chrome
+    vscodium
   ];
 }
