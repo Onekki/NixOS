@@ -19,147 +19,37 @@
 - Git、GitHub CLI credential helper
 - sops-nix secrets
 
-## 0. 准备
+## 1. 安装系统
 
-默认控制机是手机端的 Nix 环境，例如 Nix-on-Droid / Nix-on-drop。下面所有“控制机”命令都默认在手机里执行。
+### 1.1 Live CD 本机安装
 
-### 0.1 检查手机控制机
+这是推荐流程。手机只负责打开这份 README 和复制命令，所有安装命令都在目标机器的 NixOS Live CD 里执行。
 
-手机控制机只需要能运行 `nix`：
+#### 1.1.1 启动 Live CD
+
+用 NixOS 安装 U 盘启动目标机器。
+
+确认 Live CD 里能运行 `nix`：
 
 ```bash
 nix --version
 ```
 
-### 0.2 在手机控制机 clone 仓库
-
-公开仓库可以直接 clone，不需要先登录 GitHub：
+确认网络：
 
 ```bash
-nix shell nixpkgs#git -c sh -lc 'test -d ~/NixOS || git clone https://github.com/Onekki/NixOS.git ~/NixOS'
-cd ~/NixOS
-nix shell nixpkgs#git -c git pull --ff-only
+curl -I https://cache.nixos.org
 ```
 
-后续控制机命令都默认在这个目录里执行。
+#### 1.1.2 可选：给 Live CD 配置代理
 
-### 0.3 确认会被格式化的磁盘
-
-默认安装磁盘是：
-
-```text
-/dev/nvme0n1
-```
-
-如果目标机器不是这个磁盘，安装前先修改：
-
-```text
-hosts/desktop/disko.nix
-```
-
-只需要改 `device` 这一行。例如目标磁盘如果是 `/dev/sda`：
-
-```nix
-device = lib.mkDefault "/dev/sda";
-```
-
-不要改分区结构，除非你明确想调整 ESP、root 分区大小或文件系统。
-
-### 0.4 准备 age 私钥
-
-手机控制机上需要有 age 私钥：
-
-```text
-~/.config/sops/age/keys.txt
-```
-
-这个文件不要提交到 Git。它用于解密：
-
-```text
-secrets/cc-switch.yaml
-```
-
-如果手机上还没有这份私钥，先从密码管理器恢复：
-
-```bash
-mkdir -p ~/.config/sops/age
-${EDITOR:-vi} ~/.config/sops/age/keys.txt
-chmod 600 ~/.config/sops/age/keys.txt
-```
-
-确认私钥能解密仓库里的 secrets：
-
-```bash
-SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt" \
-nix shell nixpkgs#sops -c sops -d secrets/cc-switch.yaml >/dev/null
-```
-
-在手机控制机的仓库目录里准备安装时要复制到目标系统的私钥：
-
-```bash
-mkdir -p ./extra-files/var/lib/sops-nix && \
-install -m 600 ~/.config/sops/age/keys.txt ./extra-files/var/lib/sops-nix/key.txt
-```
-
-### 0.5 可选：准备代理信息
-
-如果安装时需要走手机代理，先准备：
-
-```text
-PHONE_IP=手机热点网关，例如 192.168.43.1
-PROXY_PORT=代理端口，例如 7890
-```
-
-目标机器从安装 U 盘启动后，可以用下面命令查看热点网关：
+如果 Live CD 不能直接访问网络，可以临时走手机代理。先查看手机热点网关：
 
 ```bash
 ip route
 ```
 
-## 1. 启动目标机器
-
-用 NixOS 安装 U 盘启动目标机器。
-
-给 live 安装环境里的 `nixos` 用户设置临时密码：
-
-```bash
-passwd
-```
-
-确保 SSH 服务已启动：
-
-```bash
-systemctl start sshd
-```
-
-查看目标机器 IP：
-
-```bash
-ip addr
-```
-
-确认磁盘名：
-
-```bash
-lsblk -o NAME,SIZE,TYPE,MODEL
-```
-
-找到要安装的那块磁盘。如果它的 `NAME` 不是 `nvme0n1`，回到手机控制机，在仓库里修改：
-
-```bash
-cd ~/NixOS
-vi hosts/desktop/disko.nix
-```
-
-只改 `device` 这一行。例如 live 环境里看到目标磁盘是 `sda`，就改成：
-
-```nix
-device = lib.mkDefault "/dev/sda";
-```
-
-## 2. 可选：给 live 安装环境配置代理
-
-这一步是在目标机器的 U 盘 live 系统里执行，不是安装完成后的正式系统。
+然后改开头变量并执行：
 
 ```bash
 PHONE_IP="192.168.43.1"
@@ -170,7 +60,7 @@ export HTTP_PROXY="$http_proxy"
 export HTTPS_PROXY="$https_proxy"
 ```
 
-如果 live 环境使用 Nix daemon，也给 daemon 配同样的代理：
+如果 Live CD 使用 Nix daemon，也给 daemon 配同样的代理：
 
 ```bash
 mkdir -p /etc/systemd/system/nix-daemon.service.d
@@ -187,15 +77,180 @@ systemctl daemon-reload
 systemctl restart nix-daemon
 ```
 
-测试网络：
+再测一次网络：
 
 ```bash
 curl -I https://cache.nixos.org
 ```
 
-## 3. 从控制机安装
+#### 1.1.3 Clone 仓库
 
-在手机控制机上运行。这里假设仓库已经 clone 到手机的 Nix 环境里，并且手机可以通过 SSH 访问目标机器的 live 安装环境。
+公开仓库可以直接 clone，不需要先登录 GitHub：
+
+```bash
+nix --extra-experimental-features "nix-command flakes" shell nixpkgs#git -c \
+  git clone https://github.com/Onekki/NixOS.git ~/NixOS
+cd ~/NixOS
+```
+
+#### 1.1.4 确认安装磁盘
+
+查看磁盘名：
+
+```bash
+lsblk -o NAME,SIZE,TYPE,MODEL
+```
+
+默认安装磁盘是 `/dev/nvme0n1`。如果你要安装的磁盘不是它，改 `hosts/desktop/disko.nix`：
+
+```bash
+vi hosts/desktop/disko.nix
+```
+
+只改 `device` 这一行。例如 Live CD 里看到目标磁盘是 `sda`，就改成：
+
+```nix
+device = lib.mkDefault "/dev/sda";
+```
+
+不要改分区结构，除非你明确想调整 ESP、root 分区大小或文件系统。
+
+#### 1.1.5 恢复 age 私钥
+
+把 age 私钥恢复到 Live CD。这个文件不要提交到 Git，它用于解密 `secrets/cc-switch.yaml`：
+
+```bash
+mkdir -p ~/.config/sops/age
+vi ~/.config/sops/age/keys.txt
+chmod 600 ~/.config/sops/age/keys.txt
+```
+
+确认私钥能解密仓库里的 secrets：
+
+```bash
+SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt" \
+nix --extra-experimental-features "nix-command flakes" shell nixpkgs#sops -c \
+  sops -d secrets/cc-switch.yaml >/dev/null
+```
+
+#### 1.1.6 分区、生成硬件配置、安装
+
+下面的 `disko` 命令会清空 `hosts/desktop/disko.nix` 里 `device` 指向的磁盘。
+
+分区并挂载到 `/mnt`：
+
+```bash
+sudo nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- \
+  --mode disko ./hosts/desktop/disko.nix
+```
+
+生成这台机器自己的硬件配置：
+
+```bash
+sudo nixos-generate-config --root /mnt --show-hardware-config > hosts/desktop/hardware-configuration.nix
+```
+
+把 sops-nix 运行时私钥放进新系统：
+
+```bash
+sudo mkdir -p /mnt/var/lib/sops-nix
+sudo install -m 600 ~/.config/sops/age/keys.txt /mnt/var/lib/sops-nix/key.txt
+```
+
+安装 NixOS：
+
+```bash
+sudo env NIX_CONFIG="experimental-features = nix-command flakes" \
+  nixos-install --root /mnt --flake .#desktop --no-root-passwd
+```
+
+安装完成后重启：
+
+```bash
+sudo reboot
+```
+
+### 1.2 控制机远程安装
+
+这是备用流程。只有在另一台控制机的 Nix 环境稳定，并且你想通过 SSH 远程安装目标机器时才用这一套。控制机可以是 NixOS、装了 Nix 的 Linux、macOS、WSL，或者 Android 上的 Nix 环境。
+
+#### 1.2.1 在控制机拉取仓库
+
+控制机需要能运行 `nix`：
+
+```bash
+nix --version
+```
+
+公开仓库可以直接 clone，不需要先登录 GitHub：
+
+```bash
+nix shell nixpkgs#git -c sh -lc 'test -d ~/NixOS || git clone https://github.com/Onekki/NixOS.git ~/NixOS'
+cd ~/NixOS
+nix shell nixpkgs#git -c git pull --ff-only
+```
+
+#### 1.2.2 启动目标机器并开启 SSH
+
+用 NixOS 安装 U 盘启动目标机器。
+
+给 Live CD 里的 `nixos` 用户设置临时密码：
+
+```bash
+passwd
+```
+
+确保 SSH 服务已启动：
+
+```bash
+systemctl start sshd
+```
+
+查看目标机器 IP 和磁盘名：
+
+```bash
+ip addr
+lsblk -o NAME,SIZE,TYPE,MODEL
+```
+
+如果要安装的磁盘不是 `/dev/nvme0n1`，回到控制机修改：
+
+```bash
+cd ~/NixOS
+vi hosts/desktop/disko.nix
+```
+
+只改 `device` 这一行。例如 Live CD 里看到目标磁盘是 `sda`，就改成：
+
+```nix
+device = lib.mkDefault "/dev/sda";
+```
+
+#### 1.2.3 在控制机准备私钥
+
+先把 age 私钥恢复到控制机：
+
+```bash
+mkdir -p ~/.config/sops/age
+${EDITOR:-vi} ~/.config/sops/age/keys.txt
+chmod 600 ~/.config/sops/age/keys.txt
+```
+
+确认私钥能解密仓库里的 secrets：
+
+```bash
+cd ~/NixOS && \
+SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt" \
+nix shell nixpkgs#sops -c sops -d secrets/cc-switch.yaml >/dev/null
+```
+
+准备安装时要复制到目标系统的私钥：
+
+```bash
+cd ~/NixOS && \
+mkdir -p ./extra-files/var/lib/sops-nix && \
+install -m 600 ~/.config/sops/age/keys.txt ./extra-files/var/lib/sops-nix/key.txt
+```
 
 复制下面整段，改开头变量：
 
@@ -211,7 +266,7 @@ nix shell nixpkgs#openssh -c nix run github:nix-community/nixos-anywhere -- \
   --generate-hardware-config nixos-generate-config ./hosts/desktop/hardware-configuration.nix
 ```
 
-如果手机里的仓库不在 `~/NixOS`，把第一行改成实际路径。
+如果控制机里的仓库不在 `~/NixOS`，把第一行改成实际路径。
 
 这条命令会分区、格式化、安装 NixOS，把检测到的硬件配置写入：
 
@@ -227,7 +282,7 @@ hosts/desktop/hardware-configuration.nix
 rm -rf ./extra-files
 ```
 
-## 4. 第一次登录新系统
+## 2. 首次登录
 
 临时账号：
 
@@ -279,9 +334,9 @@ cc-switch --help
 git config --global user.email
 ```
 
-## 5. 日常使用
+## 3. 日常使用
 
-### 5.1 更新系统
+### 3.1 更新系统
 
 ```bash
 sudo nixos-rebuild switch --flake .#desktop
@@ -289,7 +344,7 @@ sudo nixos-rebuild switch --flake .#desktop
 
 第一次安装之后，日常本地或远程部署可以用 `nixos-cli`。`nixos-anywhere` 主要留给还需要分区和安装的新设备。
 
-### 5.2 编辑 cc-switch 加密配置
+### 3.2 编辑 cc-switch 加密配置
 
 如果当前机器只有系统位置的 age 私钥，没有用户工作副本，先复制一份：
 
@@ -315,7 +370,7 @@ rebuild 后，`sops-nix` 会把解密结果写到：
 
 `cc-switch.db` 是本机运行时状态，不要提交。
 
-### 5.3 GitHub PAT
+### 3.3 GitHub PAT
 
 查看登录状态：
 
@@ -329,7 +384,7 @@ gh auth status
 gh auth logout
 ```
 
-## 6. 备份
+## 4. 备份
 
 必须备份 age 私钥：
 
@@ -352,7 +407,7 @@ nix shell nixpkgs#age -c age-keygen -y ~/.config/sops/age/keys.txt
 secrets/cc-switch.yaml
 ```
 
-## 7. 恢复到新机器或已有系统
+## 5. 恢复到新机器或已有系统
 
 从密码管理器恢复 age 私钥：
 
@@ -389,7 +444,7 @@ sudo nixos-rebuild switch --flake .#desktop
 gh auth login
 ```
 
-## 8. 配置说明
+## 6. 配置说明
 
 DankMaterialShell 由 Home Manager 管理，并在登录后通过用户级 systemd service 启动。正常安装流程里不要运行 `dms setup`；它会写入生成的用户配置，让机器变得不够可复现。
 
