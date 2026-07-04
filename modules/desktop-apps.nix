@@ -7,6 +7,7 @@
   };
 
   environment.systemPackages = with pkgs; [
+    ghostty
     microsoft-edge
     vscode
   ];
