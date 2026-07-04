@@ -149,7 +149,7 @@ DankMaterialShell 由 Home Manager 管理，并在登录后通过用户级 syste
 
 Clash Verge Rev 使用 nixpkgs 里的 `clash-verge-rev`，只安装在 `desktop`。配置已开启自动启动、Service Mode 和 TUN Mode；订阅、节点和规则数据属于本机运行配置，不提交到 Git。
 
-Chrome 和 VSCodium 只安装在 `desktop`。Codex CLI 使用 nixpkgs 里的 `codex`，安装在通用配置里，所以 `desktop` 和 `wsl` 都可以直接使用 `codex` 命令。
+Microsoft Edge 和 VS Code 只安装在 `desktop`。Codex CLI 使用 nixpkgs 里的 `codex`，安装在通用配置里，所以 `desktop` 和 `wsl` 都可以直接使用 `codex` 命令。
 
 第一次安装之后，日常本地或远程部署可以用 `nixos-cli`。`nixos-anywhere` 主要留给还需要分区和安装的新设备。
 

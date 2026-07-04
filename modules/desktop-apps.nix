@@ -2,7 +2,7 @@
 
 {
   environment.systemPackages = with pkgs; [
-    google-chrome
-    vscodium
+    microsoft-edge
+    vscode
   ];
 }
