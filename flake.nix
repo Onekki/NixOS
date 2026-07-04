@@ -38,9 +38,14 @@
       url = "github:AvengeMedia/DankMaterialShell/stable";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    codex-desktop-linux = {
+      url = "github:ilysenko/codex-desktop-linux";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { nixpkgs, nixos-wsl, home-manager, sops-nix, cc-switch-cli, disko, nixos-cli, dms, ... }:
+  outputs = { nixpkgs, nixos-wsl, home-manager, sops-nix, cc-switch-cli, disko, nixos-cli, dms, codex-desktop-linux, ... }:
     let
       identity = rec {
         username = "nixos";
@@ -76,6 +81,7 @@
           sops-nix.nixosModules.sops
           disko.nixosModules.disko
           dms.nixosModules.greeter
+          codex-desktop-linux.nixosModules.default
           ./hosts/desktop
         ];
       };

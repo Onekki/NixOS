@@ -15,13 +15,35 @@
 - `fcitx5`、Rime、中文输入
 - Clash Verge Rev，已开启自动启动、Service Mode、TUN Mode
 - Microsoft Edge、VS Code
-- Codex CLI、cc-switch、nixos-cli
+- Codex Desktop、Codex CLI、cc-switch、nixos-cli
 - Git、GitHub CLI credential helper
 - sops-nix secrets
 
 ## 0. 准备
 
-### 0.1 确认会被格式化的磁盘
+默认控制机是手机端的 Nix 环境，例如 Nix-on-Droid / Nix-on-drop。下面所有“控制机”命令都默认在手机里执行。
+
+### 0.1 检查手机控制机
+
+手机控制机只需要能运行 `nix`：
+
+```bash
+nix --version
+```
+
+### 0.2 在手机控制机 clone 仓库
+
+公开仓库可以直接 clone，不需要先登录 GitHub：
+
+```bash
+nix shell nixpkgs#git -c sh -lc 'test -d ~/NixOS || git clone https://github.com/Onekki/NixOS.git ~/NixOS'
+cd ~/NixOS
+nix shell nixpkgs#git -c git pull --ff-only
+```
+
+后续控制机命令都默认在这个目录里执行。
+
+### 0.3 确认会被格式化的磁盘
 
 默认安装磁盘是：
 
@@ -35,9 +57,17 @@
 hosts/desktop/disko.nix
 ```
 
-### 0.2 准备 age 私钥
+只需要改 `device` 这一行。例如目标磁盘如果是 `/dev/sda`：
 
-控制机上需要有 age 私钥：
+```nix
+device = lib.mkDefault "/dev/sda";
+```
+
+不要改分区结构，除非你明确想调整 ESP、root 分区大小或文件系统。
+
+### 0.4 准备 age 私钥
+
+手机控制机上需要有 age 私钥：
 
 ```text
 ~/.config/sops/age/keys.txt
@@ -49,14 +79,29 @@ hosts/desktop/disko.nix
 secrets/cc-switch.yaml
 ```
 
-在控制机的仓库目录里准备安装时要复制到目标系统的私钥：
+如果手机上还没有这份私钥，先从密码管理器恢复：
+
+```bash
+mkdir -p ~/.config/sops/age
+${EDITOR:-vi} ~/.config/sops/age/keys.txt
+chmod 600 ~/.config/sops/age/keys.txt
+```
+
+确认私钥能解密仓库里的 secrets：
+
+```bash
+SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt" \
+nix shell nixpkgs#sops -c sops -d secrets/cc-switch.yaml >/dev/null
+```
+
+在手机控制机的仓库目录里准备安装时要复制到目标系统的私钥：
 
 ```bash
 mkdir -p ./extra-files/var/lib/sops-nix && \
 install -m 600 ~/.config/sops/age/keys.txt ./extra-files/var/lib/sops-nix/key.txt
 ```
 
-### 0.3 可选：准备代理信息
+### 0.5 可选：准备代理信息
 
 如果安装时需要走手机代理，先准备：
 
@@ -81,6 +126,12 @@ ip route
 passwd
 ```
 
+确保 SSH 服务已启动：
+
+```bash
+systemctl start sshd
+```
+
 查看目标机器 IP：
 
 ```bash
@@ -93,15 +144,30 @@ ip addr
 lsblk -o NAME,SIZE,TYPE,MODEL
 ```
 
+找到要安装的那块磁盘。如果它的 `NAME` 不是 `nvme0n1`，回到手机控制机，在仓库里修改：
+
+```bash
+cd ~/NixOS
+vi hosts/desktop/disko.nix
+```
+
+只改 `device` 这一行。例如 live 环境里看到目标磁盘是 `sda`，就改成：
+
+```nix
+device = lib.mkDefault "/dev/sda";
+```
+
 ## 2. 可选：给 live 安装环境配置代理
 
 这一步是在目标机器的 U 盘 live 系统里执行，不是安装完成后的正式系统。
 
 ```bash
-export http_proxy=http://PHONE_IP:7890
-export https_proxy=http://PHONE_IP:7890
-export HTTP_PROXY=http://PHONE_IP:7890
-export HTTPS_PROXY=http://PHONE_IP:7890
+PHONE_IP="192.168.43.1"
+PROXY_PORT="7890"
+export http_proxy="http://${PHONE_IP}:${PROXY_PORT}"
+export https_proxy="http://${PHONE_IP}:${PROXY_PORT}"
+export HTTP_PROXY="$http_proxy"
+export HTTPS_PROXY="$https_proxy"
 ```
 
 如果 live 环境使用 Nix daemon，也给 daemon 配同样的代理：
@@ -109,12 +175,12 @@ export HTTPS_PROXY=http://PHONE_IP:7890
 ```bash
 mkdir -p /etc/systemd/system/nix-daemon.service.d
 
-cat >/etc/systemd/system/nix-daemon.service.d/proxy.conf <<'EOF'
+cat >/etc/systemd/system/nix-daemon.service.d/proxy.conf <<EOF
 [Service]
-Environment="http_proxy=http://PHONE_IP:7890"
-Environment="https_proxy=http://PHONE_IP:7890"
-Environment="HTTP_PROXY=http://PHONE_IP:7890"
-Environment="HTTPS_PROXY=http://PHONE_IP:7890"
+Environment="http_proxy=http://${PHONE_IP}:${PROXY_PORT}"
+Environment="https_proxy=http://${PHONE_IP}:${PROXY_PORT}"
+Environment="HTTP_PROXY=http://${PHONE_IP}:${PROXY_PORT}"
+Environment="HTTPS_PROXY=http://${PHONE_IP}:${PROXY_PORT}"
 EOF
 
 systemctl daemon-reload
@@ -129,21 +195,15 @@ curl -I https://cache.nixos.org
 
 ## 3. 从控制机安装
 
-在控制机上运行。控制机可以是 NixOS、装了 Nix 的 Linux、装了 Nix 的 macOS、WSL，或者 Android 上的 Nix 环境。
+在手机控制机上运行。这里假设仓库已经 clone 到手机的 Nix 环境里，并且手机可以通过 SSH 访问目标机器的 live 安装环境。
 
 复制下面整段，改开头变量：
 
 ```bash
-cd /path/to/NixOS && \
+cd ~/NixOS && \
 TARGET_IP="192.168.43.123" && \
 TARGET_USER="nixos" && \
-PHONE_IP="192.168.43.1" && \
-PROXY_PORT="7890" && \
-export http_proxy="http://${PHONE_IP}:${PROXY_PORT}" && \
-export https_proxy="http://${PHONE_IP}:${PROXY_PORT}" && \
-export HTTP_PROXY="$http_proxy" && \
-export HTTPS_PROXY="$https_proxy" && \
-nix run github:nix-community/nixos-anywhere -- \
+nix shell nixpkgs#openssh -c nix run github:nix-community/nixos-anywhere -- \
   --build-on remote \
   --flake .#desktop \
   --target-host "${TARGET_USER}@${TARGET_IP}" \
@@ -151,7 +211,7 @@ nix run github:nix-community/nixos-anywhere -- \
   --generate-hardware-config nixos-generate-config ./hosts/desktop/hardware-configuration.nix
 ```
 
-如果控制机不需要代理，删掉 `PHONE_IP`、`PROXY_PORT` 和几行 `export`。
+如果手机里的仓库不在 `~/NixOS`，把第一行改成实际路径。
 
 这条命令会分区、格式化、安装 NixOS，把检测到的硬件配置写入：
 
@@ -212,6 +272,8 @@ git ls-remote https://github.com/Onekki/NixOS.git
 确认常用命令可用：
 
 ```bash
+command -v codex-desktop
+test -f /run/current-system/sw/share/applications/codex-desktop.desktop && echo ok
 codex --version
 cc-switch --help
 git config --global user.email
@@ -335,6 +397,6 @@ DankMaterialShell 由 Home Manager 管理，并在登录后通过用户级 syste
 
 Clash Verge Rev 使用 nixpkgs 里的 `clash-verge-rev`，只安装在 `desktop`。订阅、节点和规则数据属于本机运行配置，不提交到 Git。
 
-Microsoft Edge 和 VS Code 只安装在 `desktop`。Codex CLI 使用 nixpkgs 里的 `codex`，安装在通用配置里，所以 `desktop` 和 `wsl` 都可以直接使用 `codex` 命令。
+Microsoft Edge、VS Code 和 Codex Desktop 只安装在 `desktop`。Codex Desktop 使用 `github:ilysenko/codex-desktop-linux` 的 NixOS module，并把它使用的 CLI 指向 nixpkgs 里的 `codex`。Codex CLI 安装在通用配置里，所以 `desktop` 和 `wsl` 都可以直接使用 `codex` 命令。
 
 Git 由 Home Manager 管理，用户姓名和邮箱集中写在 `flake.nix` 的 `identity` 里。默认分支是 `main`，`git pull` 默认使用 rebase。GitHub 认证由 `gh` 管理，Git 会使用 GitHub CLI 的 credential helper。
