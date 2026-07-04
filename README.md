@@ -35,6 +35,38 @@
 nix --version
 ```
 
+如果用 WiFi，先连接无线网络。
+
+图形 ISO 可以直接点桌面右下角网络图标，或者在终端里运行：
+
+```bash
+nmtui
+```
+
+minimal ISO 可以用 `wpa_supplicant`。先确认无线网卡名：
+
+```bash
+ip link
+```
+
+然后改 `WIFI_SSID`，执行后输入 WiFi 密码：
+
+```bash
+WIFI_SSID="你的 WiFi 名称"
+read -rs WIFI_PASSWORD
+sudo systemctl start wpa_supplicant
+wpa_passphrase "$WIFI_SSID" "$WIFI_PASSWORD" | sudo tee /etc/wpa_supplicant.conf >/dev/null
+unset WIFI_PASSWORD
+sudo systemctl restart wpa_supplicant
+sudo systemctl restart dhcpcd || true
+```
+
+确认已经拿到 IP：
+
+```bash
+ip addr
+```
+
 确认网络：
 
 ```bash
